@@ -15,8 +15,8 @@
 
 ;; Only works in cider
 ;; Produces ClassNotFoundException from the cli as 'boot run'
-(deftask run
-  "Runs a built target jar"
-  []
-  (require 'sudoku-solver.core)
-  (sudoku-solver.core/-main))
+;; (deftask run
+;;   "Runs a built target jar"
+;;   []
+;;   (require 'sudoku-solver.core)
+;;   (sudoku-solver.core/-main))
