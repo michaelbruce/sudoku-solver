@@ -27,12 +27,15 @@
   "Returns an array of numbers missing from the argument array"
   (remove zero? (diff (flatten numlist) (range 1 10))))
 
+(defn grid-by-x-y [x y]
+  "Returns the grid that the position x y belongs to")
+
 (defn extract-grid [position board]
   "Returns a 3x3 grid from a complete sudoku puzzleboard"
   (+ 5 8))
 
 (defn extract-column [position board]
-  (map #(nth % pos) board))
+  (map #(nth % position) board))
 
 (defn extract-row [position board]
   (nth board position))
@@ -40,6 +43,21 @@
 ;; TODO continue from here
 (defn solve-row [board]
   (+ 5 8))
+
+(defn valid [x y board]
+  "Returns a list of valid digits for the position x y"
+  (missing (extract-column y board))
+  (missing (extract-row y board))
+  )
+
+(defn solve [board]
+  "Organic or 'indirect' solving method programming ad-hoc ;)"
+  ;; First, find any easy pickings - columns with a single missing digit.
+  (dotimes [n (count board)]
+    (if (= 1 (count (missing (extract-column n board))))
+      (println "Found column with exactly one missing digit"))
+    (if (= 1 (count (missing (extract-row n board))))
+      (println "Found row with exactly one missing digit"))))
 
 (defn -main [& args]
   (println "AHOY!"))
