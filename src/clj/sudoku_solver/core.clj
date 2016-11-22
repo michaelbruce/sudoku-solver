@@ -30,19 +30,19 @@
 (defn grid-by-x-y [x y]
   "Returns the grid that the position x y belongs to")
 
+(defn take-at-point [point n col]
+  (take n (last (split-at point col))))
+
 (defn extract-grid [position board]
   "Returns a 3x3 grid from a complete sudoku puzzleboard"
-  (+ 5 8))
+  (dotimes [n 3]
+    (take-at-point 0 3 (get board n))))
 
 (defn extract-column [position board]
   (map #(nth % position) board))
 
 (defn extract-row [position board]
   (nth board position))
-
-;; TODO continue from here
-(defn solve-row [board]
-  (+ 5 8))
 
 (defn valid [x y board]
   "Returns a list of valid digits for the position x y"
