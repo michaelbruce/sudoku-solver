@@ -42,14 +42,38 @@
 
 (grid-coord 6)
 
-(defn valid [x y board]
-  "Returns a list of valid digits for the position x y"
-  (map #(println %)
+(defn invalid [x y board]
+  "trash function"
+  (map #(missing %)
        [(nth (columns board) x)
         (nth board y)
         (extract-grid (mod (grid-coord x) 3) (mod (grid-coord y) 3) board)]))
 
-(valid 0 2 puzzle)
+(defn valid [x y board]
+  "Returns a list of valid digits for the position x y"
+  [(nth (columns board) x)
+   (nth board y)
+   (extract-grid (mod (grid-coord x) 3) (mod (grid-coord y) 3) board)])
+
+(defn value-at-position [x y]
+  (-> puzzle (nth x) (nth y)))
+
+(missing (distinct (flatten (valid 4 2 puzzle))))
+
+(missing (distinct (flatten (valid 5 1 puzzle))))
+
+(for [x (range 0 9)
+      y (range 0 9)]
+  (let [value (value-at-position x y)]
+  (if (zero? value)
+    (distinct (flatten (valid x y puzzle)))
+    value)))
+
+(nth (columns puzzle) 0)
+
+(reduce concat (valid 0 2 puzzle))
+(flatten (reduce conj (valid 0 2 puzzle)))
+(missing (distinct (flatten (into [] (valid 0 2 puzzle)))))
 
 (defn solve [board]
   "Organic or 'indirect' solving method programming ad-hoc ;)"
@@ -80,9 +104,9 @@ puzzle
 
 (missing [[7 1 3 2 5] [7 4 3 2 9 8] [7 1 3 2 8]]) ;; results for point 0 0 only
 
-for each grid
-  - take the 3 columns that compose it
-  - take the 3 rows that compose it
+;; for each grid
+;;   - take the 3 columns that compose it
+;;   - take the 3 rows that compose it
 
 (for [x (range 0 9 3)
       y (range 0 9 3)]
