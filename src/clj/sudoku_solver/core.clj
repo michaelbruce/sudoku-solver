@@ -33,40 +33,42 @@
         y (range y (+ y 3))]
     (get-in board [x y])))
 
-(defn grid-coord
-  "Returns starting grid coordinate given a position"
-  [n]
-  (* (quot n 3) 3))
+(defn grid-coord [position]
+  (* (quot position 3) 3))
 
-(quot 7 3)
-
-(grid-coord 6)
-
-(defn invalid [x y board]
-  "trash function"
-  (map #(missing %)
-       [(nth (columns board) x)
-        (nth board y)
-        (extract-grid (mod (grid-coord x) 3) (mod (grid-coord y) 3) board)]))
-
-(defn valid [x y board]
-  "Returns a list of valid digits for the position x y"
+(defn position-info [x y board]
   [(nth (columns board) x)
    (nth board y)
-   (extract-grid (mod (grid-coord x) 3) (mod (grid-coord y) 3) board)])
+   ;; extract-grid only works as expected with args reversed?
+   (extract-grid (grid-coord y) (grid-coord x) board)
+   (value-at-position x y board)])
 
-(defn value-at-position [x y]
-  (-> puzzle (nth x) (nth y)))
+(defn possible-values
+  "Returns list of possible values for a given coordinate"
+  [x y board]
+  (missing (distinct (flatten [(nth (columns board) x)
+   (nth board y)
+   (extract-grid (grid-coord y) (grid-coord x) board)]))))
+
+(quot 5 3)
+(grid-coord 5)
+(position-info 5 1 puzzle)
+(missing (distinct (flatten (possible-values 5 1 puzzle))))
+(invalid 4 1 puzzle)
+
+(defn value-at-position [x y board]
+  (-> board (nth y) (nth x)))
 
 (missing (distinct (flatten (valid 4 2 puzzle))))
 
 (missing (distinct (flatten (valid 5 1 puzzle))))
 
-(for [x (range 0 9)
-      y (range 0 9)]
-  (let [value (value-at-position x y)]
+;; stage 1 solver
+(for [y (range 0 9)
+      x (range 0 9)]
+  (let [value (value-at-position x y puzzle)]
   (if (zero? value)
-    (distinct (flatten (valid x y puzzle)))
+    (possible-values x y puzzle)
     value)))
 
 (nth (columns puzzle) 0)
@@ -84,17 +86,6 @@
   (println "AHOY!"))
 
 ;; ----------------------------------------------------------------------
-
-;; solving position 0,4 (and returning updated puzzle board)
-(missing (extract-grid 4 5 puzzle))
-(extract-grid 4 5 puzzle)
-
-(missing (extract-column 4 puzzle))
-(missing (extract-row 0 puzzle))
-
-puzzle
-(columns puzzle)
-
 
 (map missing (columns puzzle)) ;; missing numbers in each column
 (map missing puzzle) ;; missing numbers in each row
