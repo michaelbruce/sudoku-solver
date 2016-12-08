@@ -2,23 +2,26 @@
 
 ;; base02 - an incomplete sudoku puzzleboard
 (def puzzle
-  [[6 0 0 0 0 0 1 5 0]
-   [9 5 4 7 1 0 0 8 0]
-   [0 0 0 5 0 2 6 0 0]
-   [8 0 0 0 9 4 0 0 6]
-   [0 0 3 8 0 5 4 0 0]
-   [4 0 0 3 7 0 0 0 8]
-   [0 0 6 9 0 3 0 0 0]
-   [0 2 0 0 4 7 8 9 3]
-   [0 4 9 0 0 0 0 0 5]])
+  [6 0 0 0 0 0 1 5 0
+   9 5 4 7 1 0 0 8 0
+   0 0 0 5 0 2 6 0 0
+   8 0 0 0 9 4 0 0 6
+   0 0 3 8 0 5 4 0 0
+   4 0 0 3 7 0 0 0 8
+   0 0 6 9 0 3 0 0 0
+   0 2 0 0 4 7 8 9 3
+   0 4 9 0 0 0 0 0 5])
 
 (defn diff [list1 list2]
   (mapcat
    (fn [[x n]] (repeat n x))
    (apply merge-with - (map frequencies [list1 list2]))))
 
+(defn rows [board]
+  (->> board (partition 9) (map vec) (into [])))
+
 (defn columns [board]
-  (apply map vector board))
+  (apply map vector (rows board)))
 
 (defn missing [numlist]
   "Returns an array of numbers missing from the argument array"
@@ -31,33 +34,36 @@
   "Returns a 3x3 grid from a complete sudoku puzzleboard"
   (for [x (range x (+ x 3))
         y (range y (+ y 3))]
-    (get-in board [x y])))
+    (get-in (rows board) [x y])))
 
 (defn grid-coord [position]
   (* (quot position 3) 3))
 
 (defn position-info [x y board]
   [(nth (columns board) x)
-   (nth board y)
+   (nth (rows board) y)
    ;; extract-grid only works as expected with args reversed?
-   (extract-grid (grid-coord y) (grid-coord x) board)
-   (value-at-position x y board)])
+   (extract-grid (grid-coord y) (grid-coord x) (rows board))
+   (value-at-position x y (rows board))])
 
 (defn possible-values
   "Returns list of possible values for a given coordinate"
   [x y board]
-  (missing (distinct (flatten [(nth (columns board) x)
-   (nth board y)
-   (extract-grid (grid-coord y) (grid-coord x) board)]))))
+  (missing
+    (distinct
+      (flatten
+        [(nth (columns board) x)
+         (nth (rows board) y)
+         (extract-grid (grid-coord y) (grid-coord x) (rows board))]))))
 
 (quot 5 3)
 (grid-coord 5)
 (position-info 5 1 puzzle)
-(missing (distinct (flatten (possible-values 5 1 puzzle))))
+(possible-values 5 1 puzzle)
 (invalid 4 1 puzzle)
 
 (defn value-at-position [x y board]
-  (-> board (nth y) (nth x)))
+  (-> (rows board) (nth y) (nth x)))
 
 (missing (distinct (flatten (valid 4 2 puzzle))))
 
@@ -70,6 +76,37 @@
   (if (zero? value)
     (possible-values x y puzzle)
     value)))
+
+;; stage 2 solver
+(for [y (range 0 9)
+      x (range 0 9)]
+  (let [value (value-at-position x y puzzle)]
+    (let [pos (possible-values x y puzzle)]
+      (if (zero? value)
+        (if (= 1 (count pos))
+          (first pos) 0)
+        value))))
+
+(count '(6))
+
+;; solve by pos
+;; solve by row, then col?
+
+;; stage 1 solver
+(defn solve [board]
+  (for [y (range 0 9)
+        x (range 0 9)]
+    (let [value (value-at-position x y puzzle)]
+      (let [pos (possible-values x y puzzle)]
+        (if (zero? value)
+          (if (= 1 (count pos))
+            (first pos) 0)
+          value)))))
+
+(solve puzzle)
+(6 0 0 4 0 0 1 5 0 9 5 4 7 1 6 0 8 2 0 0 0 5 0 2 6 0 0 8 0 0 0 9 4 0 0 6 0 0 3 8 0 5 4 0 0 4 0 0 3 7 0 0 0 8 0 0 6 9 0 3 0 0 0 0 2 0 0 4 7 8 9 3 0 4 9 0 0 0 0 0 5)
+(solve (solve puzzle))
+(6 0 0 4 0 0 1 5 0 9 5 4 7 1 6 0 8 2 0 0 0 5 0 2 6 0 0 8 0 0 0 9 4 0 0 6 0 0 3 8 0 5 4 0 0 4 0 0 3 7 0 0 0 8 0 0 6 9 0 3 0 0 0 0 2 0 0 4 7 8 9 3 0 4 9 0 0 0 0 0 5)
 
 (nth (columns puzzle) 0)
 
