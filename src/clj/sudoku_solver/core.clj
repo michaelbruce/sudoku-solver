@@ -21,7 +21,9 @@
   (->> board (partition 9) (map vec) (into [])))
 
 (defn columns [board]
-  (apply map vector (rows board)))
+  (apply mapv vector (rows board)))
+
+(columns puzzle)
 
 (defn missing [numlist]
   "Returns an array of numbers missing from the argument array"
@@ -35,6 +37,9 @@
   (for [x (range x (+ x 3))
         y (range y (+ y 3))]
     (get-in (rows board) [x y])))
+
+(defn value-at-position [x y board]
+  (-> (rows board) (nth y) (nth x)))
 
 (defn grid-coord [position]
   (* (quot position 3) 3))
@@ -55,19 +60,6 @@
         [(nth (columns board) x)
          (nth (rows board) y)
          (extract-grid (grid-coord y) (grid-coord x) (rows board))]))))
-
-(quot 5 3)
-(grid-coord 5)
-(position-info 5 1 puzzle)
-(possible-values 5 1 puzzle)
-(invalid 4 1 puzzle)
-
-(defn value-at-position [x y board]
-  (-> (rows board) (nth y) (nth x)))
-
-(missing (distinct (flatten (valid 4 2 puzzle))))
-
-(missing (distinct (flatten (valid 5 1 puzzle))))
 
 ;; stage 1 solver
 (for [y (range 0 9)
@@ -104,15 +96,32 @@
           value)))))
 
 (solve puzzle)
-(6 0 0 4 0 0 1 5 0 9 5 4 7 1 6 0 8 2 0 0 0 5 0 2 6 0 0 8 0 0 0 9 4 0 0 6 0 0 3 8 0 5 4 0 0 4 0 0 3 7 0 0 0 8 0 0 6 9 0 3 0 0 0 0 2 0 0 4 7 8 9 3 0 4 9 0 0 0 0 0 5)
 (solve (solve puzzle))
-(6 0 0 4 0 0 1 5 0 9 5 4 7 1 6 0 8 2 0 0 0 5 0 2 6 0 0 8 0 0 0 9 4 0 0 6 0 0 3 8 0 5 4 0 0 4 0 0 3 7 0 0 0 8 0 0 6 9 0 3 0 0 0 0 2 0 0 4 7 8 9 3 0 4 9 0 0 0 0 0 5)
 
-(nth (columns puzzle) 0)
+(defn grid-solve [board]
+  "Examine each 3x3 grid, iterate over missing values in that grid and discover
+  coordinates that are valid for them by checking which related rows and columns contain a given value."
+  (extract-grid 3 0 puzzle))
 
-(reduce concat (valid 0 2 puzzle))
-(flatten (reduce conj (valid 0 2 puzzle)))
-(missing (distinct (flatten (into [] (valid 0 2 puzzle)))))
+(contains? [1 2 3] 5)
+
+(let [rows (subvec (rows puzzle) 0 3)
+      columns (subvec (columns puzzle) 3 6)]
+  (map #(some #{6} %) rows)
+  (map #(some #{6} %) columns)
+  )
+
+(map #(some #{6} %) [[6 0 0 0 0 0 1 5 0]
+                     [9 5 4 7 1 0 0 8 0]
+                     [0 0 0 5 0 2 6 0 0]])
+
+(contains? [9 5 4 7 1 0 0 8 0] 6)
+(some #{3} [3 4 5])
+
+;; middle right pos in top middle grid should be 6
+(grid-solve puzzle)
+
+;; top middle solve 6 pos
 
 (defn solve [board]
   "Organic or 'indirect' solving method programming ad-hoc ;)"
