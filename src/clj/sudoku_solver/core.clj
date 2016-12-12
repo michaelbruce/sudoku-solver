@@ -95,31 +95,25 @@
             (first pos) 0)
           value)))))
 
-(solve puzzle)
-(solve (solve puzzle))
+(defn include? [value col]
+  (not (nil? (some #{value} col))))
 
-(defn grid-solve [board]
+(defn value-present [value grid-x grid-y puzzle]
+  "Returns whether a value exists in each of the rows and columns that make a grid"
+  (let [rows (subvec (rows puzzle) grid-x (+ grid-x 3))
+        columns (subvec (columns puzzle) grid-y (+ grid-y 3))]
+    (concat (map #(include? 6 %) rows)
+            (map #(include? 6 %) columns))))
+
+(value-present 6 0 3 puzzle)
+
+(defn grid-solve [grid-x grid-y board]
   "Examine each 3x3 grid, iterate over missing values in that grid and discover
   coordinates that are valid for them by checking which related rows and columns contain a given value."
-  (extract-grid 3 0 puzzle))
-
-(contains? [1 2 3] 5)
-
-(let [rows (subvec (rows puzzle) 0 3)
-      columns (subvec (columns puzzle) 3 6)]
-  (map #(some #{6} %) rows)
-  (map #(some #{6} %) columns)
-  )
-
-(map #(some #{6} %) [[6 0 0 0 0 0 1 5 0]
-                     [9 5 4 7 1 0 0 8 0]
-                     [0 0 0 5 0 2 6 0 0]])
-
-(contains? [9 5 4 7 1 0 0 8 0] 6)
-(some #{3} [3 4 5])
+  (value-present 6 grid-x grid-y board))
 
 ;; middle right pos in top middle grid should be 6
-(grid-solve puzzle)
+(grid-solve 0 3 puzzle)
 
 ;; top middle solve 6 pos
 
