@@ -72,14 +72,16 @@
 (defn solve [puzzle]
   (let [grows (subvec (rows puzzle) 0 3)
         gcols (subvec (columns puzzle) 3 6)]
-    (map #(include? 6 %) grows)))
+    [(mapv #(include? 6 %) grows)
+     (mapv #(include? 6 %) gcols)]))
 
-(solve puzzle)
+(time (solve puzzle))
+(frequencies [true false false])
 
 ;; XXX working out
 ;; (index-of (solve puzzle) true)
-(mapv #(index-of % 6) (subvec (rows puzzle) 0 3))
-(.indexOf (first (subvec (rows puzzle) 0 3)) 6)
+;;(mapv #(index-of % 6) (subvec (rows puzzle) 0 3))
+;;(.indexOf (first (subvec (rows puzzle) 0 3)) 6)
 
 (defn -main [& args]
   (println "AHOY!"))
