@@ -1,5 +1,6 @@
 (ns sudoku-solver.core
   (:require [clojure.string :refer [index-of]]))
+;; XXX clojure.set/difference
 
 (def puzzle
   [6 0 0 0 0 0 1 5 0
@@ -33,18 +34,11 @@
         y (range y (+ y 3))]
     (get-in (rows board) [x y])))
 
-(defn value-at-position [x y board]
-  (-> (rows board) (nth y) (nth x)))
+(defn value-at-position [x y puzzle]
+  (-> (rows puzzle) (nth x) (nth y)))
 
 (defn include? [value col]
   (not (nil? (some #{value} col))))
-
-(defn value-present [value grid-x grid-y puzzle]
-  "Returns whether a value exists in each of the rows and columns that make a grid"
-  (let [rows (subvec (rows puzzle) grid-x (+ grid-x 3))
-        columns (subvec (columns puzzle) grid-y (+ grid-y 3))]
-    (concat (map #(include? 6 %) rows)
-            (map #(include? 6 %) columns))))
 
 ;; Solving sudoku
 ;; => take a puzzle as a vector
@@ -63,13 +57,9 @@
 (defn update-position [x y value puzzle]
   (assoc puzzle (+ (* x 9) y) value))
 
-(update-position 0 0 7 puzzle)
-
-(value-at-position 3 1 puzzle)
-
 (defn missing-positions [dataset]
-  (into [] (remove nil? (mapv #(if (= false (second %))(first %))
-                              (map-indexed vector dataset)))))
+  (into [] (remove nil? (map #(if (= false (second %))(first %))
+                             (map-indexed vector dataset)))))
 
 (defn solve [puzzle]
   (let [gx 0 gy 3]
@@ -87,9 +77,20 @@
   (if (= 0 (value-at-position x y puzzle))
     (update-position x y value puzzle) puzzle))
 
+(value-at-position 1 3 puzzle)
+
 (->> (complete-puzzle-position 1 5 6 puzzle)
-     (complete-puzzle-position 1 4 2)
+     (complete-puzzle-position 1 4 6)
      (complete-puzzle-position 1 3 6))
+
+(let [posseq [[1 5] [1 4] [1 3]]]
+  (->> (complete-puzzle-position (first (first posseq))
+                                 (second (first posseq))6 puzzle)
+       (for [pos (rest posseq)]
+         (complete-puzzle-position (first pos) (second pos) 6))))
+
+(reduce (fn [puzzle [x y]] (complete-puzzle-position x y 6 puzzle))
+        puzzle [[1 5] [1 4] [1 3]])
 
 (if (= 0 (value-at-position 1 5 puzzle))
   (update-position 1 5 6 puzzle) puzzle)
