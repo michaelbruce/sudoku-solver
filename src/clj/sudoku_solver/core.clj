@@ -69,14 +69,31 @@
 
 ;; (defn exists?)
 
+;; XXX get coord value
+;; XXX replace coord value
+
+(defn missing-positions [dataset]
+  (into [] (remove nil? (mapv #(if (= false (second %))(first %))
+                              (map-indexed vector dataset)))))
+
 (defn solve [puzzle]
   (let [grows (subvec (rows puzzle) 0 3)
         gcols (subvec (columns puzzle) 3 6)]
-    [(mapv #(include? 6 %) grows)
-     (mapv #(include? 6 %) gcols)]))
+    (let [mrows (missing-positions (mapv #(include? 6 %) grows))
+          mcols (missing-positions (mapv #(include? 6 %) gcols))]
+      (let [missing-coords (for [x mrows y mcols] (vector x y))]
+        missing-coords))))
 
-(time (solve puzzle))
+(solve puzzle)
 (frequencies [true false false])
+
+;; iterate through coords and find 0
+(for [x [1] y [0 1 2]] (vector x y))
+
+(def test-vec [true false false])
+(missing-positions test-vec)
+
+;; if only one row OR col doesn't have 
 
 ;; XXX working out
 ;; (index-of (solve puzzle) true)
