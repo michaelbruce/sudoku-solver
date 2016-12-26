@@ -1,7 +1,6 @@
 (ns sudoku-solver.core
   (:require [clojure.string :refer [index-of]]))
 
-;; base02 - an incomplete sudoku puzzleboard
 (def puzzle
   [6 0 0 0 0 0 1 5 0
    9 5 4 7 1 0 0 8 0
@@ -23,8 +22,6 @@
 
 (defn columns [board]
   (apply mapv vector (rows board)))
-
-(columns puzzle)
 
 (defn missing [numlist]
   "Returns an array of numbers missing from the argument array"
@@ -49,8 +46,6 @@
     (concat (map #(include? 6 %) rows)
             (map #(include? 6 %) columns))))
 
-(value-present 6 0 3 puzzle)
-
 ;; Solving sudoku
 ;; => take a puzzle as a vector
 ;;   => take the top middle grid
@@ -65,40 +60,39 @@
 ;; [{:x 3 :y 2} {:x 3 :y 1}]
 ;; (assoc puzzle (+ x (* y 9)) 6)
 
-;; => will keep going until (indexOf puzzle 0) is -1
+(defn update-position [x y value puzzle]
+  (assoc puzzle (+ (* x 9) y) value))
 
-;; (defn exists?)
+(update-position 0 0 7 puzzle)
 
-;; XXX get coord value
-;; XXX replace coord value
+(value-at-position 3 1 puzzle)
 
 (defn missing-positions [dataset]
   (into [] (remove nil? (mapv #(if (= false (second %))(first %))
                               (map-indexed vector dataset)))))
 
 (defn solve [puzzle]
-  (let [grows (subvec (rows puzzle) 0 3)
-        gcols (subvec (columns puzzle) 3 6)]
-    (let [mrows (missing-positions (mapv #(include? 6 %) grows))
-          mcols (missing-positions (mapv #(include? 6 %) gcols))]
-      (let [missing-coords (for [x mrows y mcols] (vector x y))]
-        missing-coords))))
+  (let [gx 0 gy 3]
+    (let [grows (subvec (rows puzzle) gx (+ gx 3))
+          gcols (subvec (columns puzzle) gy (+ gy 3))]
+      (let [mrows (missing-positions (mapv #(include? 6 %) grows))
+            mcols (missing-positions (mapv #(include? 6 %) gcols))]
+        (let [missing-coords (for [x mrows y mcols] (vector x y))]
+          missing-coords)))))
 
 (solve puzzle)
-(frequencies [true false false])
+([1 0] [1 1] [1 2])
 
-;; iterate through coords and find 0
-(for [x [1] y [0 1 2]] (vector x y))
+(defn complete-puzzle-position [x y value puzzle]
+  (if (= 0 (value-at-position x y puzzle))
+    (update-position x y value puzzle) puzzle))
 
-(def test-vec [true false false])
-(missing-positions test-vec)
+(->> (complete-puzzle-position 1 5 6 puzzle)
+     (complete-puzzle-position 1 4 2)
+     (complete-puzzle-position 1 3 6))
 
-;; if only one row OR col doesn't have 
-
-;; XXX working out
-;; (index-of (solve puzzle) true)
-;;(mapv #(index-of % 6) (subvec (rows puzzle) 0 3))
-;;(.indexOf (first (subvec (rows puzzle) 0 3)) 6)
+(if (= 0 (value-at-position 1 5 puzzle))
+  (update-position 1 5 6 puzzle) puzzle)
 
 (defn -main [& args]
   (println "AHOY!"))
