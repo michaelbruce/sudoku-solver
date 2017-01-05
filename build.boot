@@ -6,17 +6,15 @@
   "Builds an uberjar of this project that can be run with java -jar"
   []
   (comp
-    (aot :namespace '#{sudoku-solver.core})
-    (pom :project 'sudoku-solver
-         :version "0.0.0")
+    (aot :namespace #{'sudoku-solver.core})
     (uber)
-    (jar :main 'sudoku-solver.core)
+    (jar :file "solver.jar" :main 'sudoku-solver.core)
+    (sift :include #{#"solver.jar"})
     (target)))
 
-;; Only works in cider
-;; Produces ClassNotFoundException from the cli as 'boot run'
-;; (deftask run
-;;   "Runs a built target jar"
-;;   []
-;;   (require 'sudoku-solver.core)
-;;   (sudoku-solver.core/-main))
+(deftask run
+  "Runs a built target jar"
+  []
+  (require 'sudoku-solver.core)
+  (let [core-main (resolve 'sudoku-solver.core/-main)]
+    (core-main)))

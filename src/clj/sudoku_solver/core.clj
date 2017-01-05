@@ -1,6 +1,7 @@
 (ns sudoku-solver.core
   (:require [clojure.set :as sets]
-            [clojure.pprint :as pp]))
+            [clojure.pprint :as pp])
+  (:gen-class))
 
 (def puzzle
   [6 0 0 0 0 0 1 5 0
@@ -66,7 +67,7 @@
 
 (defn complete? [puzzle]
   (and (empty? (filter set? puzzle))
-      (not= 0 (some #{0} puzzle))))
+       (not= 0 (some #{0} puzzle))))
 
 (defn complete-puzzle [puzzle]
   (reduce (fn [puzzle x]
