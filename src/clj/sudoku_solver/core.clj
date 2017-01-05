@@ -26,11 +26,6 @@
         y (range y (+ y 3))]
     (get-in (rows board) [x y])))
 
-(defn grids [board]
-  (for [x (range 0 9 3)
-        y (range 0 9 3)]
-    (extract-grid x y board)))
-
 (defn potential-values [group1 group2 group3]
   (sets/difference (set (range 1 10))
                    (set group1)
