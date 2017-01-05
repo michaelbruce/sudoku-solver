@@ -1,7 +1,6 @@
-(ns sudoku-solver.core)
-
-;; A SP is well posed if it has one solutions
-;; i.e requires no hinting
+(ns sudoku-solver.core
+  (:require [clojure.set :as sets]
+            [clojure.pprint :as pp]))
 
 (def puzzle
   [6 0 0 0 0 0 1 5 0
@@ -31,33 +30,50 @@
         y (range 0 9 3)]
     (extract-grid x y board)))
 
-(defn validate-group [group]
-  (= 1
-     (count
-      (distinct
-       (flatten
-        (map (fn [x] (vals (dissoc (frequencies x) 0))) group))))))
+(defn potential-values [group1 group2 group3]
+  (sets/difference (set (range 1 10))
+                   (set group1)
+                   (set group2)
+                   (set group3)))
 
-(defn update-puzzle [pos val puzzle]
-  (let [new-puzzle (assoc puzzle pos val)]
-    (if (= true
-           (= 0 (nth puzzle pos))
-           (validate-group (rows new-puzzle))
-           (validate-group (cols new-puzzle))
-           (validate-group (grids new-puzzle)))
-      new-puzzle puzzle)))
+(defn y-pos [num-val]
+  (int (/ num-val 9)))
+
+(defn x-pos [num-val]
+  (mod num-val 9))
+
+(defn gpos [val]
+  "Gets the starting grid position for a given x or y"
+  (* (int (/ val 3)) 3))
+
+(defn values-for-pos [pos puzzle]
+  (potential-values (nth (rows puzzle) (y-pos pos))
+                    (nth (cols puzzle) (x-pos pos))
+                    (extract-grid (gpos (y-pos pos))
+                                  (gpos (x-pos pos)) puzzle)))
+
+(defn solve [puzzle]
+  (reduce (fn [puzzle x]
+            (if (or (= 0 (nth puzzle x))
+                    (set? (nth puzzle x)))
+              (let [possible-values (values-for-pos x puzzle)]
+                (if (< 1 (count possible-values))
+                  (assoc puzzle x possible-values)
+                  (assoc puzzle x (first possible-values))))
+              puzzle))
+          puzzle
+          (range 81)))
+
+(defn complete? [puzzle]
+  (and (empty? (filter set? puzzle))
+      (not= 0 (some #{0} puzzle))))
 
 (defn complete-puzzle [puzzle]
-  (reduce
-   (fn [puzzle [pos val]] (update-puzzle pos val puzzle))
-   puzzle (for [x (range 81) y (range 1 10)] (vector x y))))
-
-(def oneiter (complete-puzzle puzzle))
-
-(def teniter (reduce (fn [puzzle x] (complete-puzzle puzzle))
-                     puzzle (range 10)))
-
-(= oneiter teniter) ;; true - iteration is off?
+  (reduce (fn [puzzle x]
+            (if (complete? puzzle)
+              (reduced puzzle)
+              (solve puzzle)))
+          puzzle (range)))
 
 (defn -main [& args]
-  (println "AHOY!"))
+  (time (pp/pprint (rows (complete-puzzle puzzle)))))
